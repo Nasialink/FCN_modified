@@ -1,5 +1,5 @@
 # FCN_modified
-Modifications of the code for the neural network based on the "3D MRI brain tumor segmentation using autoencoder regularization (FCN)" paper by Andriy Myronenko.
+Modifications of the code from [the implementation](https://github.com/IAmSuyogJadhav/3d-mri-brain-tumor-segmentation-using-autoencoder-regularization) of the "[3D MRI brain tumor segmentation using autoencoder regularization (FCN)](https://arxiv.org/abs/1810.11654)" paper by Andriy Myronenko.
 We divided the main script into 3 scripts, to separately implement the individual phases of the segmentation process : 
 1. functions.py: it contains custom functions made by the author of the code
 2. preprocess.py: the preprocessing phase -> reading the images and creating the data arrays that will be used in later steps
