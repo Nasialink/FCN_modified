@@ -27,11 +27,19 @@ root_path='/home/nasia/Documents/BRATS/data/training_'+ datetime.datetime.now().
 save_pred_path = root_path+'/predictions'
 save_model_path = root_path+'/saved_model'
 test_file = root_path+'/testset'
-'''
+
 
 data_path = '/media/nasia/ssd2tb/nasia/data/data_one.nii.gz'
 labels_path = '/media/nasia/ssd2tb/nasia/data/labels_one.nii.gz'
 root_path='/media/nasia/ssd2tb/nasia/training_'+ datetime.datetime.now().strftime("%m%d%Y_%H%M%S")
+#path_checkpoint = root_path +'/cp.ckpt'
+save_pred_path = root_path+'/predictions'
+save_model_path = root_path+'/saved_model'
+test_file = root_path+'/testset'
+'''
+data_path = '/home/azach/FCN_modified_new/data/data_cropped.nii.gz'
+labels_path = '/home/azach/FCN_modified_new/data/labels_cropped.nii.gz'
+root_path='/home/azach/FCN_modified_new/data/training_'+ datetime.datetime.now().strftime("%m%d%Y_%H%M%S")
 #path_checkpoint = root_path +'/cp.ckpt'
 save_pred_path = root_path+'/predictions'
 save_model_path = root_path+'/saved_model'
@@ -58,6 +66,9 @@ test_idx_file = '/content/gdrive/MyDrive/Diplomatiki_new/brats/testset'+datetime
 batch_size = 1
 epochs = 100
 period = 10
+input_shape = (4, 160, 192, 128)
+#input_shape = (4, 80, 96, 64)
+output_channels = 3
 json_file_path = root_path+'/history.json'
 
 lrn=0.00001
@@ -72,19 +83,13 @@ class NumpyEncoder(json.JSONEncoder):
             return obj.tolist()  # Convert numpy array to list
         return json.JSONEncoder.default(self, obj)
     
-data = nib.load(data_path)
-labels = nib.load(labels_path)
-
-print(data.shape)
-print(labels.shape)
-input_shape = (4, 80, 96, 64)
-#input_shape = (4, 160, 192, 128)input_shape = (4, 80, 96, 64)
-output_channels = 3
-np_data = data.get_fdata()
-np_labels = labels.get_fdata()
+np_data = nib.load(data_path).get_fdata()
+np_labels = nib.load(labels_path).get_fdata()
+print(np_data.shape)
+print(np.max(np_data), np.min(np_data))
 # data = np.empty(data.shape[0] + input_shape, dtype=np.float32)
 # labels = np.empty((data.shape[0]), output_channels) + input_shape[1:], dtype=np.uint8)
-# np_data
+
 # for i in data.shape[0]:
 #     data = sitk.GetArrayFromImage(data)
 # labels = sitk.GetArrayFromImage(labels)
