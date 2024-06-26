@@ -102,13 +102,23 @@ for i in range(data.shape[1]):
 print(max_train,min_train)
 print(np.max(data[:,1,:,:,:]),np.max(data[:,2,:,:,:]),np.max(data[:,3,:,:,:]))
 
-min_train = np.array(min_train).reshape(4, 1, 1, 1)
-max_train = np.array(max_train).reshape(4, 1, 1, 1)
+# 185, 4, 160, 192, 128
+for w in range(3):
+    min_c = np.min(data[:, w, :, :])
+    max_c = np.max(data[:, w, :, :])
 
-for img in data:
-    img = (img - min_train) / (max_train - min_train)
+    data[:, w, :, :, :] = (data[:, w, :, :, :] - min_c) / (max_c - min_c)
 
-print(np.unique(labels))    
+
+
+# min_train = np.array(min_train).reshape(4, 1, 1, 1)
+# max_train = np.array(max_train).reshape(4, 1, 1, 1)
+
+# for img in data:
+#     img = (img - min_train) / (max_train - min_train)
+
+print(np.unique(labels)) 
+print("Min data: ", np.min(data), "Max data: ", np.max(data))   
 all_data= nib.Nifti1Image(data, affine=np.eye(4)) #converting np.arrays into nii.gz files
 all_lab= nib.Nifti1Image(labels, affine=np.eye(4))
 

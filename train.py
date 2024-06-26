@@ -37,9 +37,9 @@ save_pred_path = root_path+'/predictions'
 save_model_path = root_path+'/saved_model'
 test_file = root_path+'/testset'
 '''
-data_path = '/home/azach/FCN_modified_new/data/data_cropped.nii.gz'
-labels_path = '/home/azach/FCN_modified_new/data/labels_cropped.nii.gz'
-root_path='/home/azach/FCN_modified_new/data/training_'+ datetime.datetime.now().strftime("%m%d%Y_%H%M%S")
+data_path = '/home/azach/testdir/data/data_cropped.nii.gz'
+labels_path = '/home/azach/testdir/data/labels_cropped.nii.gz'
+root_path='/home/azach/testdir/data/training_'+ datetime.datetime.now().strftime("%m%d%Y_%H%M%S")
 #path_checkpoint = root_path +'/cp.ckpt'
 save_pred_path = root_path+'/predictions'
 save_model_path = root_path+'/saved_model'
@@ -93,6 +93,11 @@ print(np.max(np_data), np.min(np_data))
 # for i in data.shape[0]:
 #     data = sitk.GetArrayFromImage(data)
 # labels = sitk.GetArrayFromImage(labels)
+
+# data_train = np_data[:240, :, :, :, :]
+# labels_train = np_labels[:240, :, :, :]
+# data_test = np_data[240:, :, :, :, :]
+# labels_test = np_labels[240:, :, :, :]
 
 # Split into training and test set 
 data_train, data_test, labels_train, labels_test = train_test_split(np_data, np_labels, test_size=0.25, random_state=None)
