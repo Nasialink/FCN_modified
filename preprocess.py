@@ -20,15 +20,15 @@ from functions import *
 tensorflow.compat.v1.disable_eager_execution() #my addition
 
 #count = 284
-#patients=285+50+34 #brats_2018 + brats_2019 + brats_2020
-patients=285
-#patients=10
+patients=285+50+34 #brats_2018 + brats_2019 + brats_2020
+#patients=285
+#patients=26
 count=patients
 
 #data_path = ['/home/nasia/Documents/BRATS/data/MICCAI_BraTS_2017_Training_Data','/home/nasia/Documents/BRATS/data/MICCAI_BraTS_2018_Data_Training', '/home/nasia/Documents/BRATS/data/MICCAI_BraTS_2019_Training_Dataset']
 #data_path = ['/media/nasia/ssd2tb/nasia/MICCAI_BraTS_2018', '/media/nasia/ssd2tb/nasia/BRATS_2019','/media/nasia/ssd2tb/nasia/BRATS_2020']
-data_path = ['/home/azach/FCN_modified_new/MICCAI_BraTS_2018','/home/azach/FCN_modified_new/BRATS_2019', '/home/azach/FCN_modified_new/BRATS_2020']
-saving_path='/home/azach/FCN_modified_new/data'
+data_path = ['/home/superteam/superproject/raw_data/MICCAI_BraTS_2018','/home/superteam/superproject/raw_data/BRATS_2019', '/home/superteam/superproject/raw_data/BRATS_2020']
+saving_path='/home/superteam/superproject/data'
 t1_all,t2_all,t1ce_all,flair_all,seg_all=[],[],[],[],[]
 input_shape= (4, 160, 192, 128) 
 output_channels = 3
@@ -81,7 +81,7 @@ step = 25 / total
 for i, imgs in enumerate(data_paths[:count]):
     try:
         data[i] = np.array([preprocess(read_img(imgs[m]), input_shape[1:]) for m in ['t1', 't2', 't1ce', 'flair']], dtype=np.float32)
-        #labels[i] = preprocess_label(read_img(imgs['seg']), input_shape[1:])#[None, ...]
+        labels[i] = preprocess_label(read_img(imgs['seg']), input_shape[1:])#[None, ...]
         
         # Print the progress bar
         print('\r' + f'Progress: '

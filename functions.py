@@ -99,25 +99,36 @@ def random_crop(img, output_size):
     #img_data = nii_img.get_fdata()
     
     # Get the dimensions of the input image
-    depth, height, width = img.shape
+    height, width, depth = img.shape
 
     # Desired output dimensions
-    output_depth, output_height, output_width = output_size
+    output_height, output_width, output_depth = output_size
 
     # Ensure the output size is smaller than the input size
     assert output_depth <= depth and output_height <= height and output_width <= width, \
         "Output size must be smaller than the input size."
+        # Calculate the center of the image
+    center_d = depth // 2
+    center_h = height // 2
+    center_w = width // 2
 
-    # Randomly select the starting point for the crop
-    start_d = np.random.randint(0, depth - output_depth + 1)
-    start_h = np.random.randint(0, height - output_height + 1)
-    start_w = np.random.randint(0, width - output_width + 1)
-
-    # Perform the crop
-    cropped_img = img[start_d:start_d + output_depth, start_h:start_h + output_height, start_w:start_w + output_width]
-
-    # Create a new NIfTI image from the cropped data
-    #cropped_nii = nib.Nifti1Image(cropped_img, nii_img.affine, nii_img.header)
+    # Calculate the starting point for the crop
+    start_d = max(0, center_d - output_depth // 2)
+    start_h = max(0, center_h - output_height // 2)
+    start_w = max(0, center_w - output_width // 2)
+    cropped_img = img[start_h:start_h + output_height, start_w:start_w + output_width, start_d:start_d + output_depth]
     print(cropped_img.shape)
 
     return cropped_img
+'''
+    # Ensure the crop window does not exceed the image dimensions
+    start_d = min(start_d, depth - output_depth)
+    start_h = min(start_h, height - output_height)
+    start_w = min(start_w, width - output_width)
+'''
+    # Perform the crop
+    
+
+    # Create a new NIfTI image from the cropped data
+    #cropped_nii = nib.Nifti1Image(cropped_img, nii_img.affine, nii_img.header)
+   
