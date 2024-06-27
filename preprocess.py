@@ -22,13 +22,13 @@ tensorflow.compat.v1.disable_eager_execution() #my addition
 #count = 284
 patients=285+50+34 #brats_2018 + brats_2019 + brats_2020
 #patients=285
-#patients=26
+patients=140
 count=patients
 
 #data_path = ['/home/nasia/Documents/BRATS/data/MICCAI_BraTS_2017_Training_Data','/home/nasia/Documents/BRATS/data/MICCAI_BraTS_2018_Data_Training', '/home/nasia/Documents/BRATS/data/MICCAI_BraTS_2019_Training_Dataset']
 #data_path = ['/media/nasia/ssd2tb/nasia/MICCAI_BraTS_2018', '/media/nasia/ssd2tb/nasia/BRATS_2019','/media/nasia/ssd2tb/nasia/BRATS_2020']
 data_path = ['/home/superteam/superproject/raw_data/MICCAI_BraTS_2018','/home/superteam/superproject/raw_data/BRATS_2019', '/home/superteam/superproject/raw_data/BRATS_2020']
-saving_path='/home/superteam/superproject/data'
+saving_path='/home/superteam/test/data'
 t1_all,t2_all,t1ce_all,flair_all,seg_all=[],[],[],[],[]
 input_shape= (4, 160, 192, 128) 
 output_channels = 3
@@ -103,9 +103,10 @@ print(max_train,min_train)
 print(np.max(data[:,1,:,:,:]),np.max(data[:,2,:,:,:]),np.max(data[:,3,:,:,:]))
 
 # 185, 4, 160, 192, 128
-for w in range(3):
-    min_c = np.min(data[:, w, :, :])
-    max_c = np.max(data[:, w, :, :])
+print(data.shape)
+for w in range(data.shape[1]):
+    min_c = np.min(data[:, w, :, :, :])
+    max_c = np.max(data[:, w, :, :, :])
 
     data[:, w, :, :, :] = (data[:, w, :, :, :] - min_c) / (max_c - min_c)
 
