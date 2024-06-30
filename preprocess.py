@@ -22,13 +22,13 @@ tensorflow.compat.v1.disable_eager_execution() #my addition
 #count = 284
 patients=285+50+34 #brats_2018 + brats_2019 + brats_2020
 #patients=285
-patients=140
+patients=40
 count=patients
 
 #data_path = ['/home/nasia/Documents/BRATS/data/MICCAI_BraTS_2017_Training_Data','/home/nasia/Documents/BRATS/data/MICCAI_BraTS_2018_Data_Training', '/home/nasia/Documents/BRATS/data/MICCAI_BraTS_2019_Training_Dataset']
 #data_path = ['/media/nasia/ssd2tb/nasia/MICCAI_BraTS_2018', '/media/nasia/ssd2tb/nasia/BRATS_2019','/media/nasia/ssd2tb/nasia/BRATS_2020']
-data_path = ['/home/superteam/superproject/raw_data/MICCAI_BraTS_2018','/home/superteam/superproject/raw_data/BRATS_2019', '/home/superteam/superproject/raw_data/BRATS_2020']
-saving_path='/home/superteam/test/data'
+data_path = ['/home/azach/testdir/raw_data/MICCAI_BraTS_2018','/home/azach/testdir/raw_data/BRATS_2019', '/home/azach/testdir/raw_data/BRATS_2020']
+saving_path='/home/azach/testdir/data'
 t1_all,t2_all,t1ce_all,flair_all,seg_all=[],[],[],[],[]
 input_shape= (4, 160, 192, 128) 
 output_channels = 3

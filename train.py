@@ -85,8 +85,10 @@ class NumpyEncoder(json.JSONEncoder):
     
 np_data = nib.load(data_path).get_fdata()
 np_labels = nib.load(labels_path).get_fdata()
-print(np_data.shape)
-print(np.max(np_data), np.min(np_data))
+print("Data shape: ", np_data.shape)
+print("Labels shape: ", np_labels.shape)
+print("Data min max: ", np.min(np_data), np.max(np_data))
+print("Labels min max: ", np.min(np_labels), np.max(np_labels))
 # data = np.empty(data.shape[0] + input_shape, dtype=np.float32)
 # labels = np.empty((data.shape[0]), output_channels) + input_shape[1:], dtype=np.uint8)
 
