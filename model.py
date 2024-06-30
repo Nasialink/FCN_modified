@@ -108,6 +108,7 @@ def sampling(args):
 
 
 def dice_coefficient(y_true, y_pred):
+    # print("Dice: ", tensorflow.shape(y_true), tensorflow.shape(y_pred.shape))
     intersection = K.sum(K.abs(y_true * y_pred), axis=[-3,-2,-1])
     dn = K.sum(K.square(y_true) + K.square(y_pred), axis=[-3,-2,-1]) + 1e-8
     return K.mean(2 * intersection / dn, axis=[0,1])
@@ -146,11 +147,11 @@ def loss_gt(e=1e-8):
         intersection = K.sum(K.abs(y_true * y_pred), axis=[-3,-2,-1])
         dn = K.sum(K.square(y_true) + K.square(y_pred), axis=[-3,-2,-1]) + e
         print(tensorflow.shape(intersection),tensorflow.shape(dn), tensorflow.shape(2 * intersection/ dn))
-        #final= -K.mean((2 * intersection)/ dn, axis=[0,1])
-        final= 1-K.mean((2 * intersection)/dn, axis=[0,1])
-        return log10(final)
+        final= 1-K.mean((2 * intersection)/ dn, axis=[0,1])
+        # final= 1-K.mean((2 * intersection)/dn, axis=[0,1])
+        # return log10(final)
         #pprint(vars(final))
-        #return final
+        return final
             
     return loss_gt_
 
