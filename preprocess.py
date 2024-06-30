@@ -25,16 +25,12 @@ patients=285+50+34 #brats_2018 + brats_2019 + brats_2020
 patients=40
 count=patients
 
-#data_path = ['/home/nasia/Documents/BRATS/data/MICCAI_BraTS_2017_Training_Data','/home/nasia/Documents/BRATS/data/MICCAI_BraTS_2018_Data_Training', '/home/nasia/Documents/BRATS/data/MICCAI_BraTS_2019_Training_Dataset']
-#data_path = ['/media/nasia/ssd2tb/nasia/MICCAI_BraTS_2018', '/media/nasia/ssd2tb/nasia/BRATS_2019','/media/nasia/ssd2tb/nasia/BRATS_2020']
 data_path = ['/home/azach/testdir/raw_data/MICCAI_BraTS_2018','/home/azach/testdir/raw_data/BRATS_2019', '/home/azach/testdir/raw_data/BRATS_2020']
 saving_path='/home/azach/testdir/data'
 t1_all,t2_all,t1ce_all,flair_all,seg_all=[],[],[],[],[]
 input_shape= (4, 160, 192, 128) 
 output_channels = 3
 max_train, min_train=[],[]
-"""data_path='/content/gdrive/MyDrive/Diplomatiki_new/brats/MICCAI_BraTS_2018_Data_Training'
-saving_path='/content/gdrive/MyDrive/Diplomatiki_new/brats'"""
 
 # Get a list of files for all modalities individually
 for i in data_path:
@@ -50,13 +46,6 @@ for i in data_path:
     seg_all=seg_all+seg
 print(len(seg_all))
 
-"""    
-t1 = glob.glob(data_path+'/*GG/*/*t1.nii.gz')
-t2 = glob.glob(data_path+'/*GG/*/*t2.nii.gz')
-flair = glob.glob(data_path+'/*GG/*/*flair.nii.gz')
-t1ce = glob.glob(data_path+'/*GG/*/*t1ce.nii.gz')
-seg = glob.glob(data_path+'/*GG/*/*seg.nii.gz')  # Ground Truth
-"""
 
 pat = re.compile('.*_(\w*)\.nii\.gz')
 
@@ -110,13 +99,6 @@ for w in range(data.shape[1]):
 
     data[:, w, :, :, :] = (data[:, w, :, :, :] - min_c) / (max_c - min_c)
 
-
-
-# min_train = np.array(min_train).reshape(4, 1, 1, 1)
-# max_train = np.array(max_train).reshape(4, 1, 1, 1)
-
-# for img in data:
-#     img = (img - min_train) / (max_train - min_train)
 
 print(np.unique(labels)) 
 print("Min data: ", np.min(data), "Max data: ", np.max(data))   
