@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 # import urllib.request
 
-from pytorch.group_norm import GroupNormalization as GroupNorm
+from group_norm import GroupNormalization as GroupNorm
 
 # # Download GroupNormalization if not already available
 # try:
@@ -43,7 +43,7 @@ class VAE(nn.Module):
         self.flatten_size = c * H * W * D // (8 ** 3)
         self.encoder = nn.Sequential(
             nn.Conv3d(c, 32, kernel_size=3, padding=1),
-            nn.SpatialDropout3d(0.2),
+            nn.Dropout3d(0.2),
             GreenBlock(32, 32),
             nn.Conv3d(32, 64, kernel_size=3, stride=2, padding=1),
             GreenBlock(64, 64),
@@ -94,7 +94,7 @@ class SegmentationModel(nn.Module):
         c, H, W, D = input_shape
         self.encoder = nn.Sequential(
             nn.Conv3d(c, 32, kernel_size=3, padding=1),
-            nn.SpatialDropout3d(0.2),
+            nn.Dropout3d(0.2),
             GreenBlock(32, 32),
             nn.Conv3d(32, 64, kernel_size=3, stride=2, padding=1),
             GreenBlock(64, 64),
@@ -132,8 +132,8 @@ class BrainTumorSegmentationModel(nn.Module):
 
     def forward(self, x):
         out_gt, x_enc = self.segmentation_model(x)
-        out_vae, z_mean, z_var = self.vae(x_enc)
-        return out_gt, out_vae, z_mean, z_var
+        # out_vae, z_mean, z_var = self.vae(x_enc)
+        return out_gt#, out_vae, z_mean, z_var
 
 def dice_coefficient(pred, target):
     smooth = 1.
