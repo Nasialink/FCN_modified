@@ -12,7 +12,7 @@ class Dataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
 
         x = torch.from_numpy(self.set_x[index, :, :, :, :])
-        y = torch.from_numpy(self.set_y[index, :, :, :, :])
+        y = torch.from_numpy(self.set_y[index, :, :, :])
         
         return x, y
     

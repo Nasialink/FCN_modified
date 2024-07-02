@@ -2,22 +2,14 @@
 """Preprocess.ipynb
 """
 import os
-import tensorflow
-import keras
+import re
 import math
-import matplotlib.pyplot as plt
-import SimpleITK as sitk  # For loading the dataset
-import numpy as np  # For data manipulation
+import glob
+import numpy as np
 import nibabel as nib
-from model import build_model  # For creating the model
-import glob  # For populating the list of files
-from scipy.ndimage import zoom  # For resizing
-import re  # For parsing the filenames (to know their modality)
-from datetime import datetime
-from PIL import Image
-import cv2
+import SimpleITK as sitk  # For loading the dataset
+
 from functions import *
-tensorflow.compat.v1.disable_eager_execution() #my addition
 
 #count = 284
 patients=285+50+34 #brats_2018 + brats_2019 + brats_2020
@@ -28,8 +20,8 @@ count=patients
 data_path = ['/home/azach/testdir/raw_data/MICCAI_BraTS_2018','/home/azach/testdir/raw_data/BRATS_2019', '/home/azach/testdir/raw_data/BRATS_2020']
 saving_path='/home/azach/testdir/data'
 t1_all,t2_all,t1ce_all,flair_all,seg_all=[],[],[],[],[]
-input_shape= (4, 160, 192, 128) 
-output_channels = 3
+input_shape= (4, 160, 160, 90) 
+output_channels = 2
 max_train, min_train=[],[]
 
 # Get a list of files for all modalities individually
@@ -55,9 +47,6 @@ data_paths = [{
 }
 for items in list(zip(t1_all, t2_all, t1ce_all, flair_all, seg_all))]
 
-#print(data_paths[5:16])
-
-#input_shape = (4, 80, 96, 64)
 
 data = np.empty((len(data_paths[:count]),) + input_shape, dtype=np.float32)
 labels = np.empty((len(data_paths[:count]), output_channels) + input_shape[1:], dtype=np.uint8)
@@ -68,24 +57,22 @@ total = len(data_paths[:count])
 step = 25 / total
 
 for i, imgs in enumerate(data_paths[:count]):
-    try:
-        data[i] = np.array([preprocess(read_img(imgs[m]), input_shape[1:]) for m in ['t1', 't2', 't1ce', 'flair']], dtype=np.float32)
-        labels[i] = preprocess_label(read_img(imgs['seg']), input_shape[1:])#[None, ...]
-        
-        # Print the progress bar
-        print('\r' + f'Progress: '
-            f"[{'=' * int((i+1) * step) + ' ' * (24 - int((i+1) * step))}]"
-            f"({math.ceil((i+1) * 100 / (total))} %)",
-            end='')
-    except Exception as e:
-        print(f'Something went wrong with {imgs["t1"]}, skipping...\n Exception:\n{str(e)}')
-        continue
-print(data[1,1,:,:,:])
-print(data[1,1,:,:,:].shape)
+    # print(i, imgs)
+    # if i > 1:
+    #     break
+    # try:
+    data[i] = np.array([preprocess(read_img(imgs[m])) for m in ['t1', 't2', 't1ce', 'flair']], dtype=np.float32)
+    labels[i] = preprocess_label(read_img(imgs['seg']))
+    
+    # Print the progress bar
+    print('\r' + f'Progress: '
+        f"[{'=' * int((i+1) * step) + ' ' * (24 - int((i+1) * step))}]"
+        f"({math.ceil((i+1) * 100 / (total))} %)",
+        end='')
+    # except Exception as e:
+    #     print(f'Something went wrong with {imgs["t1"]}, skipping...\n Exception:\n{str(e)}')
+    #     continue
 
-for i in range(data.shape[1]):
-    max_train.append(np.max(data[:,i,:,:,:]))
-    min_train.append(np.min(data[:,i,:,:,:]))
     
 
 print(max_train,min_train)

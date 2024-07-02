@@ -108,20 +108,28 @@ class SegmentationModel(nn.Module):
 
         self.decoder_gt = nn.Sequential(
             nn.Conv3d(256, 128, kernel_size=1),
-            nn.Upsample(scale_factor=2, mode='trilinear', align_corners=False),
+            # nn.Upsample(scale_factor=2, mode='trilinear', align_corners=False),
             GreenBlock(128, 128),
             nn.Conv3d(128, 64, kernel_size=1),
-            nn.Upsample(scale_factor=2, mode='trilinear', align_corners=False),
+            # nn.Upsample(scale_factor=2, mode='trilinear', align_corners=False),
             GreenBlock(64, 64),
             nn.Conv3d(64, 32, kernel_size=1),
-            nn.Upsample(scale_factor=2, mode='trilinear', align_corners=False),
+            # nn.Upsample(scale_factor=2, mode='trilinear', align_corners=False),
             GreenBlock(32, 32),
             nn.Conv3d(32, output_channels, kernel_size=1)
         )
 
     def forward(self, x):
         x_enc = self.encoder(x)
-        x_gt = self.decoder_gt(x_enc)
+        # x_gt = self.decoder_gt(x_enc)
+        x_gt = F.interpolate(x_enc, size=(40, 40, 23), mode='trilinear', align_corners=False)  # match encoder's first upsample size
+        x_gt = self.decoder_gt[0](x_gt)
+        x_gt = F.interpolate(x_gt, size=(80, 80, 45), mode='trilinear', align_corners=False)  # match encoder's second upsample size
+        x_gt = self.decoder_gt[2](x_gt)
+        x_gt = F.interpolate(x_gt, size=(160, 160, 90), mode='trilinear', align_corners=False)  # match input size
+        x_gt = self.decoder_gt[4](x_gt)
+        x_gt = self.decoder_gt[6](x_gt)
+
         return x_gt, x_enc
 
 class BrainTumorSegmentationModel(nn.Module):
@@ -133,12 +141,22 @@ class BrainTumorSegmentationModel(nn.Module):
     def forward(self, x):
         out_gt, x_enc = self.segmentation_model(x)
         # out_vae, z_mean, z_var = self.vae(x_enc)
+        # out_gt = F.argmax(out_gt, dim=1)
         return out_gt#, out_vae, z_mean, z_var
 
-def dice_coefficient(pred, target):
-    smooth = 1.
-    intersection = (pred * target).sum()
-    return (2. * intersection + smooth) / (pred.sum() + target.sum() + smooth)
+def dice_coefficient(preds, targets):
+    # smooth = 1.
+    # intersection = (pred * target).sum()
+    # return (2. * intersection + smooth) / (pred.sum() + target.sum() + smooth)
+    # print("Dice 0 sizes: ", preds.size(), targets.size())
+    pred = preds.view(-1)
+    truth = targets.view(-1)
+
+    # print("Dice sizes: ", pred.size(), truth.size())
+
+    dice_coef = (2.0 * (pred * truth).sum() + 1) / (pred.sum() + truth.sum() + 1)
+    return dice_coef
+
 
 def loss_gt(pred, target):
     return 1 - dice_coefficient(pred, target)
