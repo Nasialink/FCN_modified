@@ -68,6 +68,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # device = 'cpu'
 model.to(device)
 torch.cuda.empty_cache()
+print("Cuda available: ", torch.cuda.is_available())
 
 epochs = 20
 
@@ -121,7 +122,7 @@ for epoch in tqdm(range(epochs)):
     model.train(False)
     step = 0
     dice_p.reset()
-    for x, y in train_ldr:
+    for x, y in valid_ldr:
         print("Step: ", step)
         x, y = prepare_data(device, x, y)
         
