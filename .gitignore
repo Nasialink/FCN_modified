@@ -1,2 +1,6 @@
 check/
 *.png
+*.npy
+*.pyc
+*.pth
+*.swp

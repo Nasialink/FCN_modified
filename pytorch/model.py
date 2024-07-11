@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from torchmetrics import Metric
 # import urllib.request
 
 from group_norm import GroupNormalization as GroupNorm
@@ -144,22 +145,51 @@ class BrainTumorSegmentationModel(nn.Module):
         # out_gt = F.argmax(out_gt, dim=1)
         return out_gt#, out_vae, z_mean, z_var
 
-def dice_coefficient(preds, targets):
-    # smooth = 1.
-    # intersection = (pred * target).sum()
-    # return (2. * intersection + smooth) / (pred.sum() + target.sum() + smooth)
-    # print("Dice 0 sizes: ", preds.size(), targets.size())
-    pred = preds.view(-1)
-    truth = targets.view(-1)
 
-    # print("Dice sizes: ", pred.size(), truth.size())
+class DiceLoss(nn.Module):
+    def __init__(self, smooth=1):
+        super(DiceLoss, self).__init__()
+        self.smooth = smooth
 
-    dice_coef = (2.0 * (pred * truth).sum() + 1) / (pred.sum() + truth.sum() + 1)
-    return dice_coef
+    def forward(self, inputs, targets):
+        # Apply softmax to the inputs to get probabilities
+        inputs = torch.softmax(inputs, dim=1)
+
+        # Create a one-hot encoding of the targets
+        targets = nn.functional.one_hot(targets, num_classes=inputs.shape[1])
+        targets = targets.permute(0, 4, 1, 2, 3).float()  # Reshape to match input shape
+        
+        # Flatten the inputs and targets
+        inputs = inputs.contiguous().view(inputs.shape[0], inputs.shape[1], -1)
+        targets = targets.contiguous().view(targets.shape[0], targets.shape[1], -1)
+    
+        # Calculate Dice coefficient for each class
+        intersection = (inputs * targets).sum(dim=2)
+        dice = (2. * intersection + self.smooth) / (inputs.sum(dim=2) + targets.sum(dim=2) + self.smooth)
+        
+        # Return the mean Dice loss over all classes
+        dice_loss = 1 - dice.mean(dim=1)
+        
+        return dice_loss.mean()
 
 
-def loss_gt(pred, target):
-    return 1 - dice_coefficient(pred, target)
+# def dice_coefficient(preds, targets):
+#     # smooth = 1.
+#     # intersection = (pred * target).sum()
+#     # return (2. * intersection + smooth) / (pred.sum() + target.sum() + smooth)
+#     # print("Dice 0 sizes: ", preds.size(), targets.size())
+#     # print("Dice before sizes: ", preds.size(), targets.size())
+#     pred = preds.view(-1)
+#     truth = targets.view(-1)
+
+#     # print("Dice sizes: ", pred.size(), truth.size())
+
+#     dice_coef = (2.0 * (pred * truth).sum() + 1) / (pred.sum() + truth.sum() + 1)
+#     return dice_coef
+
+
+# def loss_gt(pred, target):
+#     return 1 - dice_coefficient(pred, target)
 
 def loss_vae(input_shape, z_mean, z_var, pred, target, weight_L2=0.1, weight_KL=0.1):
     c, H, W, D = input_shape
@@ -189,3 +219,45 @@ def loss_vae(input_shape, z_mean, z_var, pred, target, weight_L2=0.1, weight_KL=
 # total_loss = loss_gt_value + loss_vae_value
 # total_loss.backward()
 # optimizer.step()
+
+
+
+class DiceScore(Metric):
+    def __init__(self, num_classes, smooth=1, dist_sync_on_step=False):
+        super().__init__(dist_sync_on_step=dist_sync_on_step)
+        self.num_classes = num_classes
+        self.smooth = smooth
+        self.add_state("intersection", default=torch.zeros(num_classes), dist_reduce_fx="sum")
+        self.add_state("union", default=torch.zeros(num_classes), dist_reduce_fx="sum")
+
+    def update(self, inputs: torch.Tensor, targets: torch.Tensor):
+        # Ensure inputs are in float format
+        inputs = inputs.float()
+        
+        # Apply softmax to the inputs to get probabilities
+        inputs = torch.softmax(inputs, dim=1)
+        
+        # Create a one-hot encoding of the targets
+        targets = nn.functional.one_hot(targets, num_classes=self.num_classes)
+        targets = targets.permute(0, 4, 1, 2, 3).float()  # Change shape to (batch_size, num_classes, D, H, W)
+
+        # Flatten the inputs and targets
+        batch_size, num_classes, D, H, W = inputs.shape
+        inputs = inputs.view(batch_size, num_classes, -1)  # Shape: (batch_size, num_classes, D*H*W)
+        targets = targets.view(batch_size, num_classes, -1)  # Shape: (batch_size, num_classes, D*H*W)
+        
+        # Calculate intersection and union for each class
+        intersection = (inputs * targets).sum(dim=2)  # Shape: (batch_size, num_classes)
+        union = inputs.sum(dim=2) + targets.sum(dim=2)  # Shape: (batch_size, num_classes)
+        
+        # Update state
+        self.intersection += intersection.sum(dim=0).to(self.intersection.device)  # Shape: (num_classes,)
+        self.union += union.sum(dim=0).to(self.union.device)  # Shape: (num_classes,)
+
+    def compute(self):
+        dice = (2. * self.intersection + self.smooth) / (self.union + self.smooth)
+        return dice.mean()
+
+    def reset(self):
+        self.intersection = torch.zeros(self.num_classes, device=self.intersection.device)
+        self.union = torch.zeros(self.num_classes, device=self.union.device)
