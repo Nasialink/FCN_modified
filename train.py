@@ -1,4 +1,5 @@
 import os
+import json
 import torch
 import loader
 import datetime
@@ -17,6 +18,7 @@ from scores import generate_figs
 
 
 
+
 d = str(datetime.datetime.now())
 d = d.replace(" ", "__")
 d = d.replace(":", "_")
@@ -27,6 +29,16 @@ exp = "./exp_" + str(d)
 exp_inf = exp + "/inf"
 exp_metrics = exp + "/metrics"
 exp_figures = exp + "/figures"
+
+config = {
+    "experiment_folder": exp,
+    "experiment_inference_folder": exp_inf,
+    "experiment_metrics_folder": exp_figures,
+    "batch_size": 2,
+    "epochs": 4,
+    "learning_rate": 0.00001,
+    "classes": 4
+}
 
 try:  
     os.mkdir(exp)
@@ -65,7 +77,7 @@ print("Dataset x: ", np_data.shape, np.min(np_data), np.max(np_data))
 print("Dataset y: ", np_labels.shape, np.min(np_labels), np.max(np_labels))
 print("Sets: ", len(train_set_x), len(valid_set_x), len(test_set_x))
 
-batch_size = 2
+batch_size = config["batch_size"]
 
 train_set      = loader.Dataset(train_set_x, train_set_y)
 params         = {'batch_size': batch_size, 'shuffle': True}
@@ -79,10 +91,10 @@ test_ldr  = torch.utils.data.DataLoader(test_set, **params)
 
 
 input_shape = (4, 160, 160, 90)
-output_channels = 4
+output_channels = config["classes"]
 
 model = BrainTumorSegmentationModel(input_shape, output_channels)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
+optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
 lambda1 = lambda epoch: (1-(epoch/300))**0.9
 # scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda1])
 criterion = DiceLoss()
@@ -92,7 +104,7 @@ model.to(device)
 torch.cuda.empty_cache()
 print("Cuda available: ", torch.cuda.is_available())
 
-epochs = 1
+epochs = config["epochs"]
 
 def prepare_data(device, x, y):
     # x = torch.unsqueeze(x, 1)
@@ -112,7 +124,7 @@ valid_dice = np.zeros((epochs))
 
 max_score = 0.0
 
-dice_p = Dice(average='macro', num_classes=4)
+dice_p = Dice(average='macro', num_classes=config["classes"])
 # dice_p = DiceScore(num_classes=4)
 dice_p.to(device)
 for epoch in tqdm(range(epochs)):
@@ -216,18 +228,6 @@ np.save(exp_metrics + '/valid_dice', valid_dice)
 
 
 generate_figs(exp)
-# # Example forward pass
-# x = torch.randn(1, *input_shape)
-# out_gt, out_vae, z_mean, z_var = model(x)
-# print(out_gt.shape, out_vae.shape, z_mean.shape, z_var.shape)
+with open(exp + '/config.json', 'w') as fp:
+    json.dump(config, fp)
 
-# # Example loss calculation
-# target_gt = torch.randn_like(out_gt)
-# target_vae = torch.randn_like(out_vae)
-
-# loss_gt_value = loss_gt(out_gt, target_gt)
-# loss_vae_value = loss_vae(input_shape, z_mean, z_var, out_vae, target_vae)
-
-# total_loss = loss_gt_value + loss_vae_value
-# total_loss.backward()
-# optimizer.step()
