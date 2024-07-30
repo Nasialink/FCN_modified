@@ -118,7 +118,7 @@ def show_patient(x, y, pred, id):
         plt.axis('off')
         plt.title(l2[i-9], fontsize=16)
         
-    plt.savefig('./inf/p_'+str(id)+'.png')
+    plt.savefig('./inf_scheduler/p_'+str(id)+'.png')
     plt.close()
 
 dice_p = Dice(average='micro')
@@ -126,7 +126,7 @@ dice_p.to(device)
 
 
 
-model.load_state_dict(torch.load('best_model_good.pth'))
+model.load_state_dict(torch.load('best_model.pth'))
 model.eval()
 current_score = 0.0
 current_loss = 0.0

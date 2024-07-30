@@ -72,7 +72,7 @@ output_channels = 4
 model = BrainTumorSegmentationModel(input_shape, output_channels)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
 lambda1 = lambda epoch: (1-(epoch/300))**0.9
-scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda1])
+# scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda1])
 criterion = DiceLoss()
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # device = 'cpu'
@@ -133,7 +133,7 @@ for epoch in tqdm(range(epochs)):
     train_dice[epoch] = epoch_score.item()
     train_loss[epoch] = epoch_loss.item()
     print("Learning rate: ", optimizer.param_groups[0]['lr'])
-    scheduler.step()
+    # scheduler.step()
 
     model.train(False)
     step = 0
