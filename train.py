@@ -1,31 +1,43 @@
+import os
 import torch
 import loader
+import datetime
 import numpy as np
 import nibabel as nib
 from tqdm import tqdm
-# from model import loss_gt
 import matplotlib.pyplot as plt
 from model import DiceLoss
 from model import DiceScore
-# from model import dice_coefficient
 from torchmetrics.classification import Dice
 from model import BrainTumorSegmentationModel
 
 
+from scores import generate_figs
 
 
-# Melina
-# data_path = '/home/superteam/test/data/data_cropped.nii.gz'
-# labels_path = '/home/superteam/test/data/labels_cropped.nii.gz'
 
-# A40
-#data_path = '/home/azach/testdir/data/data_cropped.nii.gz'
-#labels_path = '/home/azach/testdir/data/labels_cropped.nii.gz'
+
+d = str(datetime.datetime.now())
+d = d.replace(" ", "__")
+d = d.replace(":", "_")
+d = d.replace("-", "_")
+d = d.split('.')[0]
+
+exp = "./exp_" + str(d)
+exp_inf = exp + "/inf"
+exp_metrics = exp + "/metrics"
+exp_figures = exp + "/figures"
+
+try:  
+    os.mkdir(exp)
+    os.mkdir(exp_inf)
+    os.mkdir(exp_figures)
+    os.mkdir(exp_metrics) 
+except OSError as error:  
+    print(error)  
 
 dataset = np.load('/home/superteam/test/dataset.npy')
 
-# np_data = nib.load(data_path).get_fdata()
-# np_labels = nib.load(labels_path).get_fdata()
 np_data = dataset[:, :4, :, :, :]
 np_labels = dataset[:, 4, :, :, :]
 
@@ -80,7 +92,7 @@ model.to(device)
 torch.cuda.empty_cache()
 print("Cuda available: ", torch.cuda.is_available())
 
-epochs = 300
+epochs = 1
 
 def prepare_data(device, x, y):
     # x = torch.unsqueeze(x, 1)
@@ -110,22 +122,15 @@ for epoch in tqdm(range(epochs)):
     step = 0
     dice_p.reset()
     for x, y in train_ldr:
-        # print("Step: ", step)
         x, y = prepare_data(device, x, y)
         optimizer.zero_grad()
         out_gt = model(x)
-        # out_gt = torch.argmax(out_gt, dim=1)
-        # out_gt = torch.tensor(out_gt)
-        # loss_gt_value = loss_gt(out_gt, y)
         loss_gt_value = criterion(out_gt, y)
         loss_gt_value.backward()
 
-        
-        # y = torch.argmax(y, dim=1)
         dice_p.update(out_gt, y)
         optimizer.step()
         current_loss  += loss_gt_value * batch_size
-        # print("Current Dice score: ", dice_p.compute().item())
         step += 1
 
     epoch_score = dice_p.compute()
@@ -139,17 +144,14 @@ for epoch in tqdm(range(epochs)):
     step = 0
     dice_p.reset()
     for x, y in valid_ldr:
-        # print("Step: ", step)
         x, y = prepare_data(device, x, y)
         
         with torch.no_grad():
             out_gt = model(x)
 
         out_gt = torch.argmax(out_gt, dim=1)
-        # y = torch.argmax(y, dim=1)
         dice_p.update(out_gt, y)
 
-        # print("Validation - Current Dice score: ", dice_p.compute().item())
         step += 1
 
     epoch_score = dice_p.compute()
@@ -157,11 +159,11 @@ for epoch in tqdm(range(epochs)):
     valid_dice[epoch] = epoch_score.item()
     valid_dice[epoch] = epoch_score.item()
 
-    if epoch > 0 and epoch_score > max_score:
+    if epoch >= 0 and epoch_score > max_score:
         print("Max score epoch, score: ", epoch, epoch_score)
         max_score = epoch_score
         model_dict = model.state_dict()
-        torch.save(model_dict, 'best_model.pth')
+        torch.save(model_dict, exp + '/best_model.pth')
 
 
     print("Train dice, loss - Valid dice: ", train_dice[epoch], train_loss[epoch], valid_dice[epoch])
@@ -196,7 +198,7 @@ for x, y in test_ldr:
     plt.imshow(preds[0,:,:,45], cmap='gray')
     plt.axis('off')
     plt.title('Prediction', fontsize=8)
-    plt.savefig('./inf/inf_' + str(s) + '.png')
+    plt.savefig(exp_inf + '/inf_' + str(s) + '.png')
     plt.close()
     s += 1
 
@@ -204,14 +206,16 @@ for x, y in test_ldr:
 test_set_score = dice_p.compute()
 
 print(test_set_score)
-# print(train_dice)
-# print(train_loss)
-# print(valid_dice)
+f = open(exp + "/test_set_score.txt", "w")
+f.write("Score: " + str(test_set_score.item()))
+f.close()
 
-np.save('train_dice', train_dice)
-np.save('train_loss', train_loss)
-np.save('valid_dice', valid_dice)
+np.save(exp_metrics + '/train_dice', train_dice)
+np.save(exp_metrics + '/train_loss', train_loss)
+np.save(exp_metrics + '/valid_dice', valid_dice)
 
+
+generate_figs(exp)
 # # Example forward pass
 # x = torch.randn(1, *input_shape)
 # out_gt, out_vae, z_mean, z_var = model(x)
