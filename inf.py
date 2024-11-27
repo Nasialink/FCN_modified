@@ -22,7 +22,7 @@ from model import BrainTumorSegmentationModel
 #data_path = '/home/azach/testdir/data/data_cropped.nii.gz'
 #labels_path = '/home/azach/testdir/data/labels_cropped.nii.gz'
 
-dataset = np.load('/home/superteam/test/dataset.npy')
+dataset = np.load('../datasets/dataset.npy')
 
 # np_data = nib.load(data_path).get_fdata()
 # np_labels = nib.load(labels_path).get_fdata()
@@ -126,7 +126,7 @@ dice_p.to(device)
 
 
 
-model.load_state_dict(torch.load('best_model.pth'))
+model.load_state_dict(torch.load('./exp_2024_11_27__14_08_44/best_model.pth'))
 model.eval()
 current_score = 0.0
 current_loss = 0.0
@@ -134,15 +134,21 @@ dice_p.reset()
 s = 0
 for x, y in test_ldr:
     x, y = prepare_data(device, x, y)
-        
+    print("xaxaxaxa: ", x.size())
+    print("xexexexe: ", y.size())
     with torch.no_grad():
         out_gt = model(x)
+    print("xoxoxoxo: ", out_gt.size())
     out_gt = torch.argmax(out_gt, dim=1)
+    print("xixixixi: ", out_gt.size())
     dice_p.update(out_gt, y)
 
     xs = x.cpu().detach().numpy()
     preds = out_gt.cpu().detach().numpy()
     targets = y.cpu().detach().numpy()
+
+    print(np.unique(preds))
+    print(np.unique(targets))
 
     
     show_patient(xs[0, :, :, :, :], targets[0, :, :, :], preds[0, :, :, :], s)

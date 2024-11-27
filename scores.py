@@ -3,7 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def generate_figs(exp):
+def generate_figs(exp, config):
+
     # exp = "exp_2024_07_30__11_36_19"
     metrics = exp + "/metrics/"
     figures = exp + "/figures/"
@@ -23,7 +24,7 @@ def generate_figs(exp):
     plt.xlabel("Epochs", fontsize=fs)
     plt.ylabel("Dice score", fontsize=fs)
     plt.legend(["Training", "Validation"], loc="lower right")
-    plt.title("Training - Sets: 175, 50, 25 - 300 epochs - Scheduler OFF")
+    plt.title("Training - " + str(config['epochs']) + ' epochs, ' + str(config['classes']) + ' classes, ' + 'lr: ' + str(config['learning_rate']))
     plt.savefig(figures + "dice_train_valid.png")
     
 
@@ -31,7 +32,7 @@ def generate_figs(exp):
     plt.plot(tl[:])
     plt.xlabel("Epochs", fontsize=fs)
     plt.ylabel("Loss", fontsize=fs)
-    plt.title("Training - Sets: 175, 50, 25 - 300 epochs - Scheduler OFF")
+    plt.title("Training - " + str(config['epochs']) + ' epochs, ' + str(config['classes']) + ' classes, ' + 'lr: ' + str(config['learning_rate']))
     plt.savefig(figures + "loss_train.png")
     plt.close("all")
 

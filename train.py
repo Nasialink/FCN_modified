@@ -34,7 +34,7 @@ config = {
     "experiment_folder": exp,
     "experiment_inference_folder": exp_inf,
     "experiment_metrics_folder": exp_figures,
-    "batch_size": 2,
+    "batch_size": 5,
     "epochs": 4,
     "learning_rate": 0.00001,
     "classes": 4
@@ -48,7 +48,13 @@ try:
 except OSError as error:  
     print(error)  
 
-dataset = np.load('/home/superteam/test/dataset.npy')
+dataset_init = np.load('../datasets/dataset.npy')
+
+perm = np.random.permutation(dataset_init.shape[0])
+
+np.save(config['experiment_folder'] + '/permutation.npy', perm)
+
+dataset = dataset_init[perm]
 
 np_data = dataset[:, :4, :, :, :]
 np_labels = dataset[:, 4, :, :, :]
@@ -136,7 +142,10 @@ for epoch in tqdm(range(epochs)):
     for x, y in train_ldr:
         x, y = prepare_data(device, x, y)
         optimizer.zero_grad()
+        print("xaxaxaxaxa: ", x.size())
+        print("xexexexexe: ", y.size())
         out_gt = model(x)
+        print("xixixixixi: ", out_gt.size())
         loss_gt_value = criterion(out_gt, y)
         loss_gt_value.backward()
 
@@ -227,7 +236,7 @@ np.save(exp_metrics + '/train_loss', train_loss)
 np.save(exp_metrics + '/valid_dice', valid_dice)
 
 
-generate_figs(exp)
+generate_figs(exp, config)
 with open(exp + '/config.json', 'w') as fp:
     json.dump(config, fp)
 
